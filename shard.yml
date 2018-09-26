@@ -1,0 +1,26 @@
+name: frontd
+version: 0.1.0
+
+authors:
+  - Luka Vandervelden <lukc@upyum.com>
+
+# FIXME: OH MY GODO
+# description: |
+#   Short description of frontd
+
+# FIXME: Use versions, maybe?
+dependencies:
+  kemal:
+    github: kemalcr/kemal
+  html_builder:
+    github: crystal-lang/html_builder
+
+targets:
+  frontd:
+    main: src/main.cr
+
+# development_dependencies:
+#   webmock:
+#     github: manastech/webmock.cr
+
+# license: MIT

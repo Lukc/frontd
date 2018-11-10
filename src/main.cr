@@ -7,14 +7,6 @@ require "ipc"
 require "./builder.cr"
 require "./blogd.cr"
 
-services = [
-	{
-		prefix: "blog",
-		host: "blogd",
-		port: 8888
-	}
-]
-
 blogd = BlogD::Client.new "blogd"
 
 def templateBody(**attrs, &block)

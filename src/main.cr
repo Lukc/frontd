@@ -1,136 +1,21 @@
 
 require "kemal"
 require "html_builder"
-require "blogd"
+
+require "ipc"
+
+require "./builder.cr"
+require "./blogd.cr"
 
 services = [
 	{
 		prefix: "blog",
-		host: "localhost",
+		host: "blogd",
 		port: 8888
 	}
 ]
 
-struct HTML::Builder
-	private def hash_attributes(attrs)
-		new_attrs = Hash(Symbol, String).new
-		attrs.each do |key, value|
-			if value.is_a? Int32
-				value = value.to_s
-			end
-
-			new_attrs[key] = value
-		end
-		new_attrs
-	end
-	def navbar(**attrs)
-		attrs = hash_attributes attrs
-
-		if attrs[:class]?
-			attrs[:class] = "navbar " + attrs[:class]
-		else
-			attrs[:class] = "navbar"
-		end
-
-		@str << "<nav"
-		append_attributes_string attrs
-		@str << ">"
-		container {
-			with self yield self
-		}
-		@str << "</nav>"
-	end
-
-	def navbar_item(name, url)
-		a(class: "navbar-item", href: url) {
-			text name
-		}
-	end
-
-	{% for tag in %w(section container content level column columns card card-content card-header hero hero-body box)  %}
-	def {{tag.id.gsub /-/ , "_"}}(**attrs)
-		attrs = hash_attributes attrs
-
-		if attrs[:class]?
-			attrs[:class] = "{{tag.id}} " + attrs[:class]
-		else
-			attrs[:class] = "{{tag.id}}"
-		end
-
-		@str << "<div"
-		append_attributes_string attrs
-		@str << ">"
-		with self yield self
-		@str << "</div>"
-	end
-	{% end %}
-
-	{% for tag in %w{} %}
-
-	{% end %}
-
-	{% for tag in %w{title subtitle} %}
-	def {{tag.id}}(**attrs)
-		attrs = hash_attributes attrs
-
-		if attrs[:class]?
-			attrs[:class] = "{{tag.id}} " + attrs[:class]
-		else
-			attrs[:class] = "{{tag.id}}"
-		end
-
-		level = 1
-
-		if attrs[:level]?
-			level = attrs[:level]
-			attrs.delete :level
-		end
-
-		attrs[:class] = attrs[:class] + " is-#{level}"
-
-		@str << "<h#{level}"
-		append_attributes_string attrs
-		@str << ">"
-		with self yield self
-		@str << "</h#{level}>"
-	end
-	{% end %}
-
-	def footer(**attrs)
-		attrs = hash_attributes attrs
-
-		if attrs[:class]?
-			attrs[:class] = "footer " + attrs[:class]
-		else
-			attrs[:class] = "footer"
-		end
-
-		@str << "<footer"
-		append_attributes_string attrs
-		@str << ">"
-		container {
-			with self yield self
-		}
-		@str << "</footer>"
-	end
-
-	def level_item(**attrs)
-		attrs = hash_attributes attrs
-
-		if attrs[:class]?
-			attrs[:class] = "level-item " + attrs[:class]
-		else
-			attrs[:class] = "level-item"
-		end
-
-
-		@str << "<div"
-		append_attributes_string attrs
-		@str << ">"
-		with self yield self
-		@str << "</div>"
-	end
-end
+blogd = BlogD::Client.new "blogd"
 
 def templateBody(**attrs, &block)
 	HTML.build do
@@ -229,10 +114,15 @@ def templateBody(**attrs, &block)
 end
 
 get "/" do |env|
+	begin
+		blog_response = blogd.get_all_articles
+	rescue e
+		p e
+	end
+	
+	blog_articles = blog_response.try &.articles
+	
 	templateBody {
-		blog_articles_response = HTTP::Client.new(services[0][:host], services[0][:port]).get("/articles")
-		blog_articles = Array(BlogD::Article).from_json blog_articles_response.body
-
 		HTML.build {
 			hero(class: "is-dark is-bold is-medium") {
 				hero_body {
@@ -249,6 +139,14 @@ get "/" do |env|
 				hero_body {
 					columns {
 						column(class: "is-8") {
+							unless blog_articles
+								next
+							end
+
+							unless blog_articles.size > 0
+								next
+							end
+
 							latest_article = blog_articles[0]
 
 							title(level: 3) {
@@ -266,16 +164,20 @@ get "/" do |env|
 							end
 						}
 						column {
+							unless blog_articles
+								next
+							end
+
+							unless blog_articles.size > 1
+								next
+							end
+								
 							title(level: 4) {
 								text "Derniers articles :"
 							}
 							ul {
-								blog_articles[1..blog_articles.size].each do |article|
-									li {
-										a(class: "title is-5", href: "/blog/" + article.title) {
-											text article.title
-										}
-									}
+								blog_articles[1..5].each do |article|
+									article.to_html_list_item
 								end
 							}
 						}
@@ -351,51 +253,51 @@ get "/" do |env|
 	}
 end
 
-def microservice(name : String, host : String, port : Int32)
-	{% for route in %w("/#{name}" "/#{name}/*") %}
-	get {{route.id}} do |env|
-		path = env.request.path.gsub (/^\// + name), ""
-		path = "/" if path == ""
+get "/blog" do |env|
+	blogd.send 0, ""
 
-		response = HTTP::Client.new(host, port).get(path)
-		status_code = response.status_code
-		title = response.headers["X-Title"]?
+	response = blogd.get_all_articles
 
-		if status_code != 200
-			body = templateBody title: "#{status_code}" {
-				HTML.build {
-					section {
-						container(class: "has-text-centered") {
-							h2 class: "title is-1" {
-								text "#{status_code}"
-							}
-							h3 class: "subtitle is-2" {
-								if status_code == 404
-									text "The requested resource was not found."
-								elsif status_code == 503
-									text "Something’s broken inside!"
-								else
-									text "An unexpected error occured."
-								end
-							}
-							text "FIXME: More explanations about things?"
+	articles = response.articles
+
+	templateBody {
+		HTML.build {
+			if articles.size == 0
+				section class: "section" {
+					div class: "container" {
+						p class: "title is-2 has-text-centered" {
+							text "No content here!"
+						}
+
+						p class: "subtitle is-2 has-text-centered" {
+							text "Maybe something will be posted in the future."
 						}
 					}
 				}
-			}
-
-			halt env, status_code: status_code, response: body
-		end
-
-		templateBody(title: title) {
-			response.body
+			else
+				articles.each do |article|
+					html article.to_html
+				end
+			end
 		}
-	end
-	{% end %}
+	}
 end
 
-services.each do |x|
-	microservice x[:prefix], x[:host], x[:port]
+get "/blog/:title" do |env|
+	title = env.params.url["title"]
+
+	article = blogd.get_article(title).try &.article
+
+	if article
+		templateBody {
+			HTML.build {
+				html article.to_html
+			}
+		}
+	else
+		"<h1>FIXME: 404</h1>"
+		# FIXME: Throw a 404 error.
+	end
 end
 
 get "/shop" do |env|

@@ -12,10 +12,16 @@ authors:
 dependencies:
   kemal:
     github: kemalcr/kemal
-  html_builder:
+  kemal-session:
+    github: kemalcr/kemal-session
+  html_builder: # temporary, will be removed
     github: crystal-lang/html_builder
   blogd:
-    github: FartingNicoNyanCat/blogd
+    github: FartingNicoNyanCats/blogd
+  slang:
+    github: jeromegn/slang
+  kilt:
+    github: jeromegn/kilt
 
 targets:
   frontd:
@@ -26,3 +32,4 @@ targets:
 #     github: manastech/webmock.cr
 
 # license: MIT
+

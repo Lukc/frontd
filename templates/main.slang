@@ -9,6 +9,10 @@ html
 		/ CSS should probably be removed once SASS
 		/ is made part of the toolchain.
 		link href="/style.css" rel="stylesheet"
+		css:
+			| .navbar .avatar {
+			| 	margin-right: 8px;
+			| }
 
 	body
 		== Kilt.render "templates/navbar.slang"

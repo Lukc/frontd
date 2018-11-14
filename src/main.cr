@@ -1,5 +1,6 @@
 
 require "kemal"
+require "kemal-session"
 require "html_builder"
 require "kilt/slang"
 
@@ -8,34 +9,112 @@ require "ipc"
 require "./builder.cr"
 require "./blogd.cr"
 
-blogd = BlogD::Client.new "blogd"
+require "authd"
 
-def main_template(**attrs, &block)
+blogd = BlogD::Client.new "blogd"
+authd = AuthD::Client.new
+
+Kemal.config.extra_options do |parser|
+	parser.on "-k file", "--jwt-key file", "Provides the JWT key for authd." do |file|
+		authd.key = File.read(file).chomp
+	end
+end
+
+Kemal::Session.config.secret = "I wanted to mule but I’m all out of Reppuu."
+
+def main_template(env, **attrs, &block)
+	user = env.authd_user
+
 	page_title = attrs.fetch :title, nil
-	
+
 	page_title = if page_title
 		"Esprit Bourse - #{page_title}"
 	else
 		page_title = "Esprit Bourse"
 	end
 
-	user = attrs.fetch :user, nil
-		
 	Kilt.render "templates/main.slang"
 end
 
 get "/" do |env|
-	begin
-		blog_response = blogd.get_all_articles
-	rescue e
-		p e
-	end
-	
+	blog_response = blogd.get_all_articles
+
 	blog_articles = blog_response.try &.articles
-	
-	main_template {
+
+	main_template(env) {
 		Kilt.render "templates/index.slang"
 	}
+end
+
+class HTTP::Server::Context
+	property authd_user : AuthD::User? = nil
+end
+
+# FIXME: Make that a Middleware, maybe?
+class AuthDMiddleware < Kemal::Handler
+	def initialize(@authd : AuthD::Client)
+	end
+
+	def call(context)
+		token = context.session.string? "token"
+
+		if token
+			user, meta = @authd.decode_token token
+
+			context.authd_user = user
+		end
+
+		call_next context
+	end
+end
+
+add_handler AuthDMiddleware.new authd
+
+get "/login" do |env|
+	user = env.authd_user
+	login_error = nil
+
+	main_template(env) { Kilt.render "templates/login.slang" }
+end
+
+get "/logout" do |env|
+	env.session.destroy
+	env.redirect "/"
+end
+
+post "/login" do |env|
+	user = nil
+
+	username = env.params.body["login"]?
+	password = env.params.body["password"]?
+
+	login_error = nil
+
+	if username.nil?
+		login_error = "“Login” field was left empty!"
+	end
+	if password.nil?
+		login_error = "“Password” field was left empty!"
+	end
+
+	if login_error
+		next main_template(env) { Kilt.render "templates/login.slang" }
+	end
+
+	# Should have next’d with a login error beforehand if those had been nil.
+	username = username.not_nil!
+	password = password.not_nil!
+
+	token = authd.get_token? username, password
+
+	if token
+		env.session.string "token", token
+	else
+		login_error = "Invalid credentials!"
+		next main_template(env) { Kilt.render "templates/login.slang" }
+	end
+
+	env.redirect "/login"
 end
 
 get "/blog" do |env|
@@ -45,7 +124,7 @@ get "/blog" do |env|
 
 	articles = response.articles
 
-	main_template {
+	main_template(env) {
 		HTML.build {
 			if articles.size == 0
 				section class: "section" {
@@ -74,7 +153,7 @@ get "/blog/:title" do |env|
 	article = blogd.get_article(title).try &.article
 
 	if article
-		main_template {
+		main_template(env) {
 			HTML.build {
 				html article.to_html
 			}
@@ -86,7 +165,7 @@ get "/blog/:title" do |env|
 end
 
 get "/shop" do |env|
-	main_template {
+	main_template(env) {
 		HTML.build {
 			section {
 				container {
@@ -98,7 +177,7 @@ get "/shop" do |env|
 end
 
 get "/forum" do |env|
-	main_template {
+	main_template(env) {
 		HTML.build {
 			section {
 				container {
@@ -109,10 +188,10 @@ get "/forum" do |env|
 	}
 end
 
-error 404 {
-	main_template {
+error 404 do |env|
+	main_template(env) {
 	}
-}
+end
 
 Kemal.run
 

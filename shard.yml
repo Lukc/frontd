@@ -18,6 +18,8 @@ dependencies:
     github: crystal-lang/html_builder
   blogd:
     github: FartingNicoNyanCats/blogd
+  authd:
+    github: Lukc/authd
   slang:
     github: jeromegn/slang
   kilt:

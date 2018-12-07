@@ -19,12 +19,12 @@
 		.columns
 			.column.is-8
 				- blog_articles.try do |articles|
-					- (articles.size > 0).try do
+					- if articles.size > 0
 						.title.is-3
 							= articles.first.title
 			.column
 				- blog_articles.try do |articles|
-					- (articles.size > 1).try do
+					- if articles.size > 1
 						title.is-4 "Derniers articles :"
 
 						ul

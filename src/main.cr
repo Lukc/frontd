@@ -140,7 +140,7 @@ get "/blog" do |env|
 				}
 			else
 				articles.each do |article|
-					html article.to_html
+					html article.to_html env
 				end
 			end
 		}
@@ -154,9 +154,7 @@ get "/blog/:title" do |env|
 
 	if article
 		main_template(env) {
-			HTML.build {
-				html article.to_html
-			}
+			article.to_html env
 		}
 	else
 		"<h1>FIXME: 404</h1>"

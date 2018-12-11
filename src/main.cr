@@ -1,24 +1,118 @@
 
 require "kemal"
 require "kemal-session"
-require "html_builder"
 require "kilt/slang"
+require "markdown"
 
 require "ipc"
 
 require "./authd.cr"
+require "./shop.cr"
 require "./builder.cr"
-require "./blogd.cr"
 
 require "authd"
 
-blogd = BlogD::Client.new "blogd"
+Kemal::Session.config.secret = "I wanted to mule but I’m all out of Reppuu."
+
 authd = AuthD::Client.new
 
 add_authd_cli_options authd
 add_authd_middleware authd
 
-Kemal::Session.config.secret = "I wanted to mule but I’m all out of Reppuu."
+shop = Shop.new
+
+add_shop_middleware
+
+# FIXME: Test data here.
+
+pp! shop.register_article Shop::Article.from_json %<{
+	"name":  "夕立",
+	"price": 666.66,
+	"description": "Uncontested best grill. Will wreck your enemies during both day and night battle.",
+	"category": "shiratsuyu",
+	"images": [
+		"https://cdn41.picsart.com/170296069000202.jpeg?c256x256",
+		"https://vignette.wikia.nocookie.net/kancolle/images/a/ae/Yuudachi_Kai_Ni_New_Year%27s_Full.png/revision/latest/scale-to-width-down/300?cb=20141231190132",
+		"https://vignette.wikia.nocookie.net/kancolle/images/b/bc/Yuudachi_Kai_Ni_Full.png/revision/latest/scale-to-width-down/300?cb=20181029142944"
+	]
+}>
+
+pp! shop.register_article Shop::Article.from_json %{{
+	"name":  "Shiratsuyu",
+	"price": 666.66,
+	"description": "Is the first ship of her class. Yes, the *first* ship!",
+	"category": "shiratsuyu",
+	"images": [
+		"https://vignette.wikia.nocookie.net/kancolle/images/c/c8/F283173ff237e809bb3b7db29846b15562c21632v2_hq.jpg/revision/latest?cb=20180713214052"
+	]
+}}
+
+pp! shop.register_article Shop::Article.from_json %{{
+	"name":  "Shigure",
+	"price": 666.66,
+	"category": "shiratsuyu",
+	"description": "Likes the rain and dislikes night battles.\\n\\n…\\n\\nYes, I know, a destroyer who dislikes night battles… it makes no sense, right?"
+}}
+
+pp! shop.register_article Shop::Article.from_json %{{
+	"name":  "Murasame",
+	"category": "shiratsuyu",
+	"price": 666.66
+}}
+
+pp! shop.register_article Shop::Article.from_json %{{
+	"name":  "Harusame",
+	"price": 666.66,
+	"category": "shiratsuyu",
+	"description": "The cutest of them all. Has never seen much combat, however. Good for carrying supplies around though."
+}}
+
+pp! shop.register_article Shop::Article.from_json %{{
+	"name":  "Kawakaze",
+	"price": 666.66,
+	"category": "shiratsuyu",
+	"description": "Looks crazy. Sounds crazy. Probably *is* crazy."
+}}
+
+pp! shop.register_article Shop::Article.from_json %{{
+	"name":  "Umikaze",
+	"category": "shiratsuyu",
+	"price": 666.66
+}}
+
+pp! shop.register_article Shop::Article.from_json %{{
+	"name":  "Yamakaze",
+	"price": 666.66,
+	"category": "shiratsuyu",
+	"description": "Mountain wind? Weird name for a weird ship daze~"
+}}
+
+pp! shop.register_article Shop::Article.from_json %{{
+	"name":  "Shimakaze",
+	"price": 9812.13,
+	"description": "Is fast and has cute 12.7cm turret-chans."
+}}
+
+50.times do |i|
+	pp! shop.register_article Shop::Article.from_json %{{
+		"name":  "Random<#{i}>",
+		"price": 9812.13,
+		"description": "The article n°#{i} in the list of 50 random articles.",
+		"category": "Random"
+	}}
+end
+
+puts "WARNING: Adding lots of new, random articles for testing purposes"
+10000.times do |i|
+	n = Random.rand 5
+
+	shop.register_article Shop::Article.from_json %{{
+		"name":  "Random<#{n},#{i}>",
+		"price": 9812.13,
+		"description": "The article n°#{i} in the list of 10 000 random articles.",
+		"category": "Random #{n}"
+	}}
+end
 
 def main_template(env, **attrs, &block)
 	user = env.authd_user
@@ -26,19 +120,15 @@ def main_template(env, **attrs, &block)
 	page_title = attrs.fetch :title, nil
 
 	page_title = if page_title
-		"Esprit Bourse - #{page_title}"
+		"みい-ちゃん - #{page_title}"
 	else
-		page_title = "Esprit Bourse"
+		page_title = "みい-ちゃん"
 	end
 
 	Kilt.render "templates/main.slang"
 end
 
 get "/" do |env|
-	blog_response = blogd.get_all_articles
-
-	blog_articles = blog_response.try &.articles
-
 	main_template(env) {
 		Kilt.render "templates/index.slang"
 	}
@@ -53,7 +143,9 @@ end
 
 get "/logout" do |env|
 	env.session.destroy
-	env.redirect "/"
+	from = env.params.query["from"]?
+
+	env.redirect from || "/"
 end
 
 post "/login" do |env|
@@ -88,82 +180,72 @@ post "/login" do |env|
 		next main_template(env) { Kilt.render "templates/login.slang" }
 	end
 
-	env.redirect "/login"
-end
-
-get "/blog" do |env|
-	blogd.send 0, ""
-
-	response = blogd.get_all_articles
-
-	articles = response.articles
-
-	main_template(env) {
-		HTML.build {
-			if articles.size == 0
-				section class: "section" {
-					div class: "container" {
-						p class: "title is-2 has-text-centered" {
-							text "No content here!"
-						}
-
-						p class: "subtitle is-2 has-text-centered" {
-							text "Maybe something will be posted in the future."
-						}
-					}
-				}
-			else
-				articles.each do |article|
-					html article.to_html
-				end
-			end
-		}
-	}
-end
-
-get "/blog/:title" do |env|
-	title = env.params.url["title"]
-
-	article = blogd.get_article(title).try &.article
-
-	if article
-		main_template(env) {
-			HTML.build {
-				html article.to_html
-			}
-		}
-	else
-		"<h1>FIXME: 404</h1>"
-		# FIXME: Throw a 404 error.
-	end
+	from = env.params.query["from"]?
+	env.redirect from || "/login"
 end
 
 get "/shop" do |env|
 	main_template(env) {
-		HTML.build {
-			section {
-				container {
-					text "SHOP HERE"
-				}
-			}
-		}
+		Kilt.render "templates/shop.slang"
 	}
 end
 
-get "/forum" do |env|
+get "/shop/categories/:category_name" do |env|
 	main_template(env) {
-		HTML.build {
-			section {
-				container {
-					text "FORUM HERE"
-				}
-			}
-		}
+		Kilt.render "templates/shop.slang"
+	}
+end
+
+get "/shop/articles/:article-name" do |env|
+	article_name = env.params.url["article-name"]
+	article = shop.articles.find &.name.==(article_name)
+
+	unless article
+		next halt env, status_code: 404
+	end
+
+	main_template(env) {
+		article.to_html_page env
+	}
+end
+
+get "/shop/cart/add/:article-name" do |env|
+	# FIXME: Redirect back to wherever the user came from!!
+
+	article_name = env.params.url["article-name"]
+	article = shop.articles.find &.name.==(article_name)
+
+	if article.nil?
+		# FIXME: Should this really be ignored?
+		from = env.params.query["from"]?
+		env.redirect from || "/shop"
+		next
+	end
+
+	cart = env.shop_cart
+
+	if cart.nil?
+		cart = Shop::Cart.new
+	end
+	puts "OH NO, SHOULD BE ADDING #{article.name} TO CART"
+
+	cart << article
+
+	env.session.string "cart", cart.to_json
+
+	from = env.params.query["from"]?
+	env.redirect from || "/shop"
+end
+
+get "/shop/cart" do |env|
+	main_template(env) {
+		Kilt.render "templates/shop-cart.slang"
 	}
 end
 
 error 404 do |env|
 	main_template(env) {
+		Kilt.render "templates/error.slang"
 	}
 end
 

@@ -1,19 +1,17 @@
 nav.navbar
 	.container
 		.navbar-brand
-			span.navbar-item
-				img src="/logo.png" alt="Esprit Bourse"
+			a.navbar-item href="/"
+				.title.is-5 Mii-chan Online
 		.navbar-menu.is-active
 			.navbar-start
 				/ FIXME: Those should probably be somewhat more automated. plz
-				a.navbar-item href="/"
-					| 🏠\u{FE0E}
-				a.navbar-item href="/blog"
-					| Blog
 				a.navbar-item href="/shop"
 					| Shop
-				a.navbar-item href="/forum"
-					| Forum
+				- if env.shop_cart
+					a.navbar-item href="/shop/cart"
+						| Cart
+
 		.navbar-end
 			- if user
 				a.navbar-item href="/login"

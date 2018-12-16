@@ -19,6 +19,8 @@
 						== Markdown.to_html description
 
 			.media-right
+				= "#{article_quantity} items"
+				br
 				= @price.to_s + " €"
 
 	.card-footer

@@ -28,26 +28,32 @@ class Shop
 			Kilt.render "templates/shop/article_page.slang"
 		end
 
-		def to_html_cart(env)
+		def to_html_cart(env, article_quantity)
 			Kilt.render "templates/shop/article_cart.slang"
 		end
 	end
 
 	class Cart
+		getter articles = Hash(String, Int32).new
+
 		JSON.mapping({
-			articles: Array(Article)
+			articles: Hash(String, Int32)
 		})
+
 		def initialize
-			@articles = Array(Article).new
 		end
 
 		def <<(article)
-			@articles << article
+			@articles[article.name] = (@articles[article.name]? || 0) + 1
 		end
 	end
 
 	def register_article(article : Article)
 		@articles << article
+	end
+
+	def get_article(name : String) : Article | Nil
+		@articles.find &.name.==(name)
 	end
 end
 

@@ -3,7 +3,9 @@ require "ipc"
 require "kilt/slang"
 
 class BlogD::Article
-	def to_html
+	def to_html(env)
+		user = env.authd_user
+
 		Kilt.render "templates/blogd/article.slang"
 	end
 

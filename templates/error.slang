@@ -5,6 +5,11 @@
 			.title.is-1 Oh no, you have found a bad, bad error!
 			.subtitle.is-2 It’s a #{env.response.status_code} error.
 
+			- message = exception.message
+			.content
+				p
+					= message
+
 .hero
 	.hero-body
 		.container

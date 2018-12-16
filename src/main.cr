@@ -9,6 +9,7 @@ require "ipc"
 require "./authd.cr"
 require "./shop.cr"
 require "./builder.cr"
+require "./blog.cr"
 
 require "authd"
 
@@ -22,6 +23,8 @@ add_authd_middleware authd
 shop = Shop.new
 
 add_shop_middleware
+
+blog = Blog.new
 
 # FIXME: Test data here.
 
@@ -184,6 +187,7 @@ post "/login" do |env|
 	env.redirect from || "/login"
 end
 
+# FIXME: Should non-general (shop, blog, forum, and so on) routes be exported from a class or module instance?
 get "/shop" do |env|
 	main_template(env) {
 		Kilt.render "templates/shop.slang"
@@ -243,10 +247,83 @@ get "/shop/cart" do |env|
 	}
 end
 
-error 404 do |env|
+get "/blog" do |env|
+	current_article = nil
+
 	main_template(env) {
-		Kilt.render "templates/error.slang"
+		Kilt.render "templates/blog.slang"
 	}
+end
+
+get "/blog/:title" do |env|
+	title = HTML.unescape env.params.url["title"]
+
+	current_article = blog.articles.find &.title_markdown.==(title)
+
+	if current_article.nil?
+		next halt env, status_code: 404
+	end
+
+	main_template(env) {
+		Kilt.render "templates/blog.slang"
+	}
+end
+
+get "/blog/new-article" do |env|
+	main_template(env) {
+		Kilt.render "templates/blog/new-article.slang"
+	}
+end
+
+# FIXME: Namespace? What would be a good namespace for this? FrontD?
+class InvalidInput < Kemal::Exceptions::CustomException
+	def initialize(@message)
+	end
+end
+
+# FIXME: Namespace? Naming? Is behavior alright?
+# FIXME: Other status codes, error messages or data transformations?
+def get_safe_input(env : HTTP::Server::Context, key : String) : String
+	begin
+		env.params.body[key]
+	rescue
+		env.response.status_code = 403
+		raise InvalidInput.new "Field 'title' was not provided"
+	end
+end
+
+post "/blog/articles" do |env|
+	from = env.params.query["from"]?
+
+	# FIXME: Client-side will also need JS integration to show missing/empty fields and such.
+
+	title = get_safe_input env, "title"
+	body = get_safe_input env, "body"
+
+	begin
+		# FIXME: second .not_nil! is a design flaw from AuthD.
+		author = env.authd_user.not_nil!.username.not_nil!
+	rescue
+		env.response.status_code = 403
+		# FIXME: Maybe… another exception?
+		raise InvalidInput.new "You must be logged in!"
+	end
+
+	article = Blog::Article.new title: title, author: author, body: body
+
+	blog << article
+
+	env.redirect from || "/blog"
+end
+
+{400, 403, 404, 500}.each do |status_code|
+	error status_code do |env, exception|
+		env.response.status_code = status_code
+
+		main_template(env) {
+			Kilt.render "templates/error.slang"
+		}
+	end
 end
 
 Kemal.run

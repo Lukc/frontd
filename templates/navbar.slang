@@ -8,6 +8,8 @@ nav.navbar
 				/ FIXME: Those should probably be somewhat more automated. plz
 				a.navbar-item href="/shop"
 					| Shop
+				a.navbar-item href="/blog"
+					| Blog
 				- if env.shop_cart
 					a.navbar-item href="/shop/cart"
 						| Cart

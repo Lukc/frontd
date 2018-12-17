@@ -302,7 +302,7 @@ post "/blog/articles" do |env|
 
 	begin
 		# FIXME: second .not_nil! is a design flaw from AuthD.
-		author = env.authd_user.not_nil!.username.not_nil!
+		author = env.authd_user.not_nil!.login.not_nil!
 	rescue
 		env.response.status_code = 403
 		# FIXME: Maybe… another exception?

@@ -19,7 +19,7 @@ nav.navbar
 				a.navbar-item href="/login"
 					.image.is-24x24.avatar
 						img.is-rounded src="https://bulma.io/images/placeholders/24x24.png" alt="User Avatar"
-					| #{user.username.to_s}
+					| #{user.full_name || user.login}
 
 				a.navbar-item href="/logout"
 					| Logout

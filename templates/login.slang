@@ -5,7 +5,7 @@
 			== login_error
 				
 		- if user
-			p Welcome, #{user.username}!
+			p Welcome, #{user.login}!
 
 			p Your cart is currently empty, because carts have not been implemented!
 

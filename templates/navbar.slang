@@ -24,5 +24,6 @@ nav.navbar
 				a.navbar-item href="/logout"
 					| Logout
 			- else
+				a.navbar-item href="/register" Sign in
 				a.navbar-item href="/login" Login
 			

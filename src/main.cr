@@ -137,6 +137,76 @@ get "/" do |env|
 	}
 end
 
+get "/register" do |env|
+	if env.authd_user
+		env.redirect "/"
+		next
+	end
+
+	errors = Array(String).new
+
+	main_template(env) {
+		Kilt.render "templates/register.slang"
+	}
+end
+
+post "/register" do |env|
+	if env.authd_user
+		env.redirect "/"
+		next
+	end
+
+	login = get_safe_input env, "login"
+	password  = get_safe_input env, "password"
+	password2 = get_safe_input env, "password2"
+
+	errors = Array(String).new
+
+	# FIXME: Add some extra validation for logins.
+	if login == ""
+		errors << "Login is empty!"
+	end
+
+	if login.match /:/
+		errors << "Login must not contain ':'."
+	end
+
+	if password != password2
+		errors << "Entered passwords are different!"
+	end
+
+	if errors.size > 0
+		next main_template(env) {
+			Kilt.render "templates/register.slang"
+		}
+	end
+
+	user = authd.add_user login, password
+
+	pp! user
+
+	if user.is_a? Exception
+		# AuthD::Client guarantees the message won’t be nil.
+		# FIXME: Maybe this is not the right class, then.
+		errors << user.message.not_nil!
+
+		next main_template(env) {
+			Kilt.render "templates/register.slang"
+		}
+	end
+
+	token = authd.get_token? login, password
+
+	# Should not fail at this point.
+	# FIXME: Maybe we need a AuthD::Client#add_user_with_token.
+	if token
+		env.session.string "token", token
+	end
+
+	# FIXME: Is that the right thing to do?
+	env.redirect "/login"
+end
+
 get "/login" do |env|
 	user = env.authd_user
 	login_error = nil
@@ -288,7 +358,7 @@ def get_safe_input(env : HTTP::Server::Context, key : String) : String
 		env.params.body[key]
 	rescue
 		env.response.status_code = 403
-		raise InvalidInput.new "Field 'title' was not provided"
+		raise InvalidInput.new "Field '#{key}' was not provided"
 	end
 end
 

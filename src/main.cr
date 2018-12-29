@@ -122,12 +122,6 @@ def main_template(env, **attrs, &block)
 
 	page_title = attrs.fetch :title, nil
 
-	page_title = if page_title
-		"みい-ちゃん - #{page_title}"
-	else
-		page_title = "みい-ちゃん"
-	end
-
 	Kilt.render "templates/main.slang"
 end
 

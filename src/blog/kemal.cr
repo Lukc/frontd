@@ -1,21 +1,5 @@
 
-# FIXME: Namespace? What would be a good namespace for this? FrontD?
-# FIXME: Define somewhere else?
-class InvalidInput < Kemal::Exceptions::CustomException
-	def initialize(@message)
-	end
-end
-
-# FIXME: Namespace? Naming? Is behavior alright?
-# FIXME: Other status codes, error messages or data transformations?
-def get_safe_input(env : HTTP::Server::Context, key : String) : String
-	begin
-		env.params.body[key]
-	rescue
-		env.response.status_code = 403
-		raise InvalidInput.new "Field '#{key}' was not provided"
-	end
-end
+require "../errors.cr"
 
 # FIXME: This is the most critical part to deduplicate.
 def main_template(env, **attrs, &block)
@@ -82,8 +66,7 @@ class Blog
 				author = env.authd_user.not_nil!.login.not_nil!
 			rescue
 				env.response.status_code = 403
-				# FIXME: Maybe… another exception?
-				raise InvalidInput.new "You must be logged in!"
+				raise FrontD::AuthenticationError.new "You must be logged in!"
 			end
 
 			article = Blog::Article.new title: title, author: author, body: body

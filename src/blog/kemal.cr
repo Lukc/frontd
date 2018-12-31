@@ -62,8 +62,7 @@ class Blog
 			body = get_safe_input env, "body"
 
 			begin
-				# FIXME: second .not_nil! is a design flaw from AuthD.
-				author = env.authd_user.not_nil!.login.not_nil!
+				author = env.authd_user.not_nil!.login
 			rescue
 				env.response.status_code = 403
 				raise FrontD::AuthenticationError.new "You must be logged in!"

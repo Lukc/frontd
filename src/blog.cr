@@ -145,9 +145,3 @@ class Blog::Comment
 	end
 end
 
-blog = Blog.new
-
-blog.each_article do |article|
-	p article
-end
-

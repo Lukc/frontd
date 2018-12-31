@@ -17,8 +17,10 @@ Kemal::Session.config.secret = "I wanted to mule but I’m all out of Reppuu."
 
 authd = AuthD::Client.new
 
+authd.register_middleware
+authd.export_all_routes
+
 add_authd_cli_options authd
-add_authd_middleware authd
 
 shop = Shop.new
 
@@ -132,126 +134,6 @@ get "/" do |env|
 	main_template(env) {
 		Kilt.render "templates/index.slang"
 	}
-end
-
-get "/register" do |env|
-	if env.authd_user
-		env.redirect "/"
-		next
-	end
-
-	errors = Array(String).new
-
-	main_template(env) {
-		Kilt.render "templates/register.slang"
-	}
-end
-
-post "/register" do |env|
-	if env.authd_user
-		env.redirect "/"
-		next
-	end
-
-	login = get_safe_input env, "login"
-	password  = get_safe_input env, "password"
-	password2 = get_safe_input env, "password2"
-
-	errors = Array(String).new
-
-	# FIXME: Add some extra validation for logins.
-	if login == ""
-		errors << "Login is empty!"
-	end
-
-	if login.match /:/
-		errors << "Login must not contain ':'."
-	end
-
-	if password != password2
-		errors << "Entered passwords are different!"
-	end
-
-	if errors.size > 0
-		next main_template(env) {
-			Kilt.render "templates/register.slang"
-		}
-	end
-
-	user = authd.add_user login, password
-
-	pp! user
-
-	if user.is_a? Exception
-		# AuthD::Client guarantees the message won’t be nil.
-		# FIXME: Maybe this is not the right class, then.
-		errors << user.message.not_nil!
-
-		next main_template(env) {
-			Kilt.render "templates/register.slang"
-		}
-	end
-
-	token = authd.get_token? login, password
-
-	# Should not fail at this point.
-	# FIXME: Maybe we need a AuthD::Client#add_user_with_token.
-	if token
-		env.session.string "token", token
-	end
-
-	# FIXME: Is that the right thing to do?
-	env.redirect "/login"
-end
-
-get "/login" do |env|
-	user = env.authd_user
-	login_error = nil
-
-	main_template(env) { Kilt.render "templates/login.slang" }
-end
-
-get "/logout" do |env|
-	env.session.destroy
-	from = env.params.query["from"]?
-
-	env.redirect from || "/"
-end
-
-post "/login" do |env|
-	user = nil
-
-	username = env.params.body["login"]?
-	password = env.params.body["password"]?
-
-	login_error = nil
-
-	if username.nil?
-		login_error = "“Login” field was left empty!"
-	end
-	if password.nil?
-		login_error = "“Password” field was left empty!"
-	end
-
-	if login_error
-		next main_template(env) { Kilt.render "templates/login.slang" }
-	end
-
-	# Should have next’d with a login error beforehand if those had been nil.
-	username = username.not_nil!
-	password = password.not_nil!
-
-	token = authd.get_token? username, password
-
-	if token
-		env.session.string "token", token
-	else
-		login_error = "Invalid credentials!"
-		next main_template(env) { Kilt.render "templates/login.slang" }
-	end
-
-	from = env.params.query["from"]?
-	env.redirect from || "/login"
 end
 
 {400, 403, 404, 500}.each do |status_code|

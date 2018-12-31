@@ -10,7 +10,7 @@
 			.card-content
 				.media
 					.media-content.has-text-centered
-						a href="/blog/#{HTML.escape @title_markdown}"
+						a href=generate_url
 							h2.title.is-1
 								== @title_html
 

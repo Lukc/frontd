@@ -53,6 +53,12 @@ class Blog
 end
 
 class Blog::Article
+	# FIXME: The /blog part should be somewhat configurable. Articles need
+	#        a reference to their Blog instance!
+	def generate_url
+		"/blog/#{HTML.escape @title_markdown}"
+	end
+
 	class JSON
 		::JSON.mapping({
 			author: String,

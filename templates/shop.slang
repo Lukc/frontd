@@ -1,5 +1,6 @@
 
-- articles = shop.articles
+/ Duplicating `articles` so that it can be transformed later down the line.
+- articles = self.articles
 - category = env.params.url["category_name"]?
 
 nav.navbar.is-light

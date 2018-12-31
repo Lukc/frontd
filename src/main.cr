@@ -22,7 +22,8 @@ add_authd_middleware authd
 
 shop = Shop.new
 
-add_shop_middleware
+shop.register_middleware
+shop.export_all_routes
 
 blog = Blog.new
 
@@ -251,66 +252,6 @@ post "/login" do |env|
 
 	from = env.params.query["from"]?
 	env.redirect from || "/login"
-end
-
-# FIXME: Should non-general (shop, blog, forum, and so on) routes be exported from a class or module instance?
-get "/shop" do |env|
-	main_template(env) {
-		Kilt.render "templates/shop.slang"
-	}
-end
-
-get "/shop/categories/:category_name" do |env|
-	main_template(env) {
-		Kilt.render "templates/shop.slang"
-	}
-end
-
-get "/shop/articles/:article-name" do |env|
-	article_name = env.params.url["article-name"]
-	article = shop.articles.find &.name.==(article_name)
-
-	unless article
-		next halt env, status_code: 404
-	end
-
-	main_template(env) {
-		article.to_html_page env
-	}
-end
-
-get "/shop/cart/add/:article-name" do |env|
-	# FIXME: Redirect back to wherever the user came from!!
-
-	article_name = env.params.url["article-name"]
-	article = shop.articles.find &.name.==(article_name)
-
-	if article.nil?
-		# FIXME: Should this really be ignored?
-		from = env.params.query["from"]?
-		env.redirect from || "/shop"
-		next
-	end
-
-	cart = env.shop_cart
-
-	if cart.nil?
-		cart = Shop::Cart.new
-	end
-	puts "OH NO, SHOULD BE ADDING #{article.name} TO CART"
-
-	cart << article
-
-	env.session.string "cart", cart.to_json
-
-	from = env.params.query["from"]?
-	env.redirect from || "/shop"
-end
-
-get "/shop/cart" do |env|
-	main_template(env) {
-		Kilt.render "templates/shop-cart.slang"
-	}
 end
 
 {400, 403, 404, 500}.each do |status_code|

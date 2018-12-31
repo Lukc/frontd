@@ -145,3 +145,5 @@ class Blog::Comment
 	end
 end
 
+require "./blog/kemal.cr"
+

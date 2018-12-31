@@ -26,6 +26,8 @@ add_shop_middleware
 
 blog = Blog.new
 
+blog.export_all_routes
+
 # FIXME: Test data here.
 
 pp! shop.register_article Shop::Article.from_json %<{
@@ -309,75 +311,6 @@ get "/shop/cart" do |env|
 	main_template(env) {
 		Kilt.render "templates/shop-cart.slang"
 	}
-end
-
-get "/blog" do |env|
-	current_article = nil
-
-	main_template(env) {
-		Kilt.render "templates/blog.slang"
-	}
-end
-
-get "/blog/:title" do |env|
-	title = HTML.unescape env.params.url["title"]
-
-	current_article = blog.articles.find &.title_markdown.==(title)
-
-	if current_article.nil?
-		next halt env, status_code: 404
-	end
-
-	main_template(env) {
-		Kilt.render "templates/blog.slang"
-	}
-end
-
-get "/blog/new-article" do |env|
-	main_template(env) {
-		Kilt.render "templates/blog/new-article.slang"
-	}
-end
-
-# FIXME: Namespace? What would be a good namespace for this? FrontD?
-class InvalidInput < Kemal::Exceptions::CustomException
-	def initialize(@message)
-	end
-end
-
-# FIXME: Namespace? Naming? Is behavior alright?
-# FIXME: Other status codes, error messages or data transformations?
-def get_safe_input(env : HTTP::Server::Context, key : String) : String
-	begin
-		env.params.body[key]
-	rescue
-		env.response.status_code = 403
-		raise InvalidInput.new "Field '#{key}' was not provided"
-	end
-end
-
-post "/blog/articles" do |env|
-	from = env.params.query["from"]?
-
-	# FIXME: Client-side will also need JS integration to show missing/empty fields and such.
-
-	title = get_safe_input env, "title"
-	body = get_safe_input env, "body"
-
-	begin
-		# FIXME: second .not_nil! is a design flaw from AuthD.
-		author = env.authd_user.not_nil!.login.not_nil!
-	rescue
-		env.response.status_code = 403
-		# FIXME: Maybe… another exception?
-		raise InvalidInput.new "You must be logged in!"
-	end
-
-	article = Blog::Article.new title: title, author: author, body: body
-
-	blog << article
-
-	env.redirect from || "/blog"
 end
 
 {400, 403, 404, 500}.each do |status_code|

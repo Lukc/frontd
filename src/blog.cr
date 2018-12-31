@@ -114,7 +114,7 @@ class Blog::Article
 		::Blog::Article::JSON.new(self).to_json
 	end
 
-	def to_html
+	def to_html(**attrs)
 		Kilt.render "templates/blog/article.slang"
 	end
 

@@ -16,6 +16,8 @@ struct UUID
 end
 
 class Blog
+	getter articles_storage
+
 	def initialize(@data_directory = "storage")
 		@articles_directory = "#{@data_directory}/articles"
 
@@ -60,6 +62,10 @@ class Blog::Article
 			body_html: String?,
 			title_markdown: String,
 			title_html: String?,
+			creation_date: {
+				type: Time,
+				default: Time.now
+			},
 			id: UUID?
 		})
 
@@ -70,6 +76,7 @@ class Blog::Article
 			@title_markdown = article.title_markdown
 			@title_html = article.title_html
 			@id = article.id
+			@creation_date = Time.now
 		end
 	end
 
@@ -79,6 +86,7 @@ class Blog::Article
 	getter body_html : String?
 	getter title_markdown : String
 	getter title_html : String?
+	getter creation_date : Time
 
 	def initialize(article : Article::JSON)
 		@author = article.author
@@ -87,6 +95,8 @@ class Blog::Article
 
 		@body_html = Markdown.to_html @body_markdown
 		@title_html = Markdown.to_html @title_markdown
+
+		@creation_date = article.creation_date
 
 		@id = article.id
 	end
@@ -98,6 +108,8 @@ class Blog::Article
 
 		@body_html = Markdown.to_html @body_markdown
 		@title_html = Markdown.to_html @title_markdown
+
+		@creation_date = Time.now
 	end
 
 	def self.from_json(string) : Article?

@@ -10,6 +10,7 @@ require "./authd.cr"
 require "./shop.cr"
 require "./builder.cr"
 require "./blog.cr"
+require "./helpers.cr"
 
 require "authd"
 

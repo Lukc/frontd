@@ -6,9 +6,7 @@
 			input.input type="text" name="title"
 
 			label.label Author
-			/ FIXME: Lock it. It’s informative only ATM.
-			input.input type="text"
-				= env.authd_user.try &.login
+			input.input type="text" disabled=true placeholder=(env.authd_user.try &.login)
 
 			label.label Text
 			textarea.input name="body"

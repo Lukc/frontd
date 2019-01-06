@@ -56,16 +56,24 @@ class Blog
 		post "/blog/articles" do |env|
 			from = env.params.query["from"]?
 
-				# FIXME: Client-side will also need JS integration to show missing/empty fields and such.
+			# FIXME: Client-side will also need JS integration to show missing/empty fields and such.
 
-				title = get_safe_input env, "title"
+			title = get_safe_input env, "title"
 			body = get_safe_input env, "body"
 
 			begin
-				author = env.authd_user.not_nil!.login
+				user = env.authd_user.not_nil!
+				author = user.login
 			rescue
 				env.response.status_code = 403
 				raise FrontD::AuthenticationError.new "You must be logged in!"
+			end
+
+			# FIXME: Configuration. Several blogs on a single website may want
+			#        different groups.
+			if ! user.groups.any? &.==("blog")
+				env.response.status_code = 403
+				raise FrontD::AuthenticationError.new "You need to be part of the 'blog' group to create blog articles!"
 			end
 
 			article = Blog::Article.new title: title, author: author, body: body

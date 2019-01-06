@@ -171,9 +171,23 @@ class AuthD::Client
 		end
 	end
 
+	def export_profile_routes
+		# FIXME: Are those the paths we want?
+		get "/profile" do |env|
+			main_template(env) {
+				Kilt.render "templates/profile.slang"
+			}
+		end
+
+		post "/profile" do |env|
+			pp! env.params.body
+		end
+	end
+
 	def export_all_routes
 		export_login_logout_routes
 		export_registration_routes
+		export_profile_routes
 	end
 end
 

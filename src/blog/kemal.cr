@@ -46,11 +46,20 @@ class Blog
 		end
 	end
 
-	def export_articles_input_pages
-		get "/blog/new-article" do |env|
-			main_template(env) {
-				Kilt.render "templates/blog/new-article.slang"
-			}
+	def export_articles_input_pages(dashboard : FrontD::Dashboard? = nil)
+		if dashboard
+			get "/dashboard/blog" do |env|
+				user = env.authd_user
+				# FIXME: Configuration & Permissions.
+				if user.nil? || ! user.groups.any? &.==("blog")
+					env.response.status_code = 403
+					raise FrontD::AuthenticationError.new "You do not have permissions to create new articles."
+				end
+
+				dashboard.render(env) {
+					Kilt.render "templates/dashboard/blog.slang"
+				}
+			end
 		end
 
 		post "/blog/articles" do |env|
@@ -84,10 +93,10 @@ class Blog
 		end
 	end
 
-	def export_all_routes
+	def export_all_routes(dashboard : FrontD::Dashboard? = nil)
 		export_articles_pages
 		export_index
-		export_articles_input_pages
+		export_articles_input_pages dashboard
 	end
 end
 

@@ -7,12 +7,15 @@ require "markdown"
 require "ipc"
 
 require "./authd.cr"
+require "./dashboard.cr"
 require "./shop.cr"
 require "./builder.cr"
 require "./blog.cr"
 require "./helpers.cr"
 
 require "authd"
+
+include FrontD
 
 Kemal::Session.config.secret = "I wanted to mule but I’m all out of Reppuu."
 
@@ -23,6 +26,8 @@ authd.export_all_routes
 
 add_authd_cli_options authd
 
+dashboard = Dashboard.new
+
 shop = Shop.new
 
 shop.register_middleware
@@ -30,7 +35,10 @@ shop.export_all_routes
 
 blog = Blog.new
 
-blog.export_all_routes
+blog.export_all_routes dashboard
+
+# Must be called after everything else has been defined.
+dashboard.export_all_routes
 
 # FIXME: Test data here.
 

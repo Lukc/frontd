@@ -8,7 +8,7 @@
 				- @pages.each do |page|
 					- if page.authorized? user.not_nil!
 						li
-							a href="/dashboard/#{page.link}" = page.title
+							a href="/dashboard#{page.link}" = page.title
 
 	.column
 		== yield

@@ -37,6 +37,8 @@ blog = Blog.new
 
 blog.export_all_routes dashboard
 
+dashboard.register blog
+
 # Must be called after everything else has been defined.
 dashboard.export_all_routes
 

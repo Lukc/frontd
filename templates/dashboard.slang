@@ -4,9 +4,11 @@
 		.menu
 			/ FIXME: That list NEEDS to be dynamic and items’ permissions checked.
 			ul.menu-list
-				li
-					a href="/dashboard" Dashboard
-					a href="/dashboard/blog" Blog
+				- user = env.authd_user
+				- @pages.each do |page|
+					- if page.authorized? user.not_nil!
+						li
+							a href="/dashboard/#{page.link}" = page.title
 
 	.column
 		== yield

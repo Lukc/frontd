@@ -98,5 +98,11 @@ class Blog
 		export_index
 		export_articles_input_pages dashboard
 	end
+
+	def dashboard_page
+		Dashboard::Page.new "/blog", "Blog" do |user|
+			user.groups.any? &.==("blog")
+		end
+	end
 end
 

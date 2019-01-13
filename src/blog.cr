@@ -42,6 +42,8 @@ class Blog
 	def articles
 		articles = Array(Article).new
 		each_article do |article|
+			load_comments article
+
 			articles << article
 		end
 		articles
@@ -51,6 +53,10 @@ class Blog
 		article.id ||= UUID.random
 
 		@articles_storage[article.id.not_nil!] = article
+	end
+
+	private def load_comments(article)
+		article.comments = FS::Hash(String, Comment).new comments_directory(article)
 	end
 end
 
@@ -88,6 +94,9 @@ class Blog::Article
 	getter title_html : String?
 	getter creation_date : Time
 
+	# Bleh. I really don’t like the idea of it being nillable.
+	property comments : FS::Hash(String, Comment)?
+
 	def initialize(article : Article::JSON)
 		@author = article.author
 		@body_markdown = article.body_markdown
@@ -101,7 +110,6 @@ class Blog::Article
 		@id = article.id
 	end
 
-	# FIXME: Should all of those really have default arguments?
 	def initialize(title : String = "", @author : String = "", body : String = "")
 		@body_markdown = body
 		@title_markdown = title
@@ -126,7 +134,7 @@ class Blog::Article
 		::Blog::Article::JSON.new(self).to_json
 	end
 
-	def to_html(**attrs)
+	def to_html(env, **attrs)
 		Kilt.render "templates/blog/article.slang"
 	end
 
@@ -142,12 +150,28 @@ class Blog::Article
 end
 
 class Blog::Comment
-	class JSON
-		::JSON.mapping({
-			author: String,
-			body_markdown: String,
-			body_html: String?
-		})
+	::JSON.mapping({
+		id: String,
+		author: String,
+		creation_date: Time,
+		body_markdown: String,
+		body_html: String?,
+		likers: Array(Int32)
+	})
+
+	def initialize(@author, @body_markdown)
+		@id = UUID.random.to_s
+		@body_html = Markdown.to_html @body_markdown
+		@creation_date = Time.now
+		@likers = Array(Int32).new
+	end
+
+	def like(user : AuthD::User)
+		unless @likers.any? &.==(user.uid)
+			@likers << user.uid
+		else
+			@likers.reject! &.==(user.uid)
+		end
 	end
 end
 

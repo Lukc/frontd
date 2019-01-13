@@ -18,6 +18,12 @@ class Blog::Article
 	end
 end
 
+class Blog::Comment
+	def to_html(env, **attrs)
+		Kilt.render "templates/blog/comment.slang"
+	end
+end
+
 class Blog
 	def export_index
 		get "/blog" do |env|
@@ -43,6 +49,64 @@ class Blog
 			main_template(env) {
 				Kilt.render "templates/blog.slang"
 			}
+		end
+	end
+
+	def export_comment_input_pages
+		post "/blog/:title" do |env|
+			title = HTML.unescape env.params.url["title"]
+
+			# Note: should match Blog::Article#generate_url.
+			current_article = articles.find &.title_markdown.==(title)
+
+			if current_article.nil?
+				next halt env, status_code: 404
+			end
+
+			body = get_safe_input env, "body"
+
+			author = env.authd_user
+			unless author # FIXME: Public comments?
+				env.response.status_code = 403
+				raise FrontD::AuthenticationError.new "You do not have permissions to post comments."
+			end
+
+			comment = Comment.new author.login, body
+
+			current_article.comments.not_nil![comment.id] = comment
+
+			env.redirect env.request.path
+		end
+
+		get "/blog/:title/likes/:comment" do |env|
+			comment_id = env.params.url["comment"]
+			title = env.params.url["title"]
+
+			article = articles.find &.title_markdown.==(title)
+
+			if article.nil?
+				env.response.status_code = 404
+				next
+			end
+
+			user = env.authd_user
+			unless user
+				env.response.status_code = 403
+				raise FrontD::AuthenticationError.new "You need to be logged in to like content!"
+			end
+
+			comment = article.comments.not_nil!.to_h.map(&.[](1)).find &.id.==(comment_id)
+
+			unless comment
+				env.response.status_code = 404
+				next
+			end
+
+			comment.like user
+
+			article.comments.not_nil![comment.id] = comment
+
+			env.redirect "/blog/#{title}"
 		end
 	end
 
@@ -96,6 +160,7 @@ class Blog
 	def export_all_routes(dashboard : FrontD::Dashboard? = nil)
 		export_articles_pages
 		export_index
+		export_comment_input_pages
 		export_articles_input_pages dashboard
 	end
 

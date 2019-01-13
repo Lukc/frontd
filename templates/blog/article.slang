@@ -1,8 +1,6 @@
 
-.hero.is-info.is-bold.blog-picture
-	.hero-body
-		/ Currently empty. Article picture will
-		/ be here in the future.
+- show_comments = attrs.fetch :comments, true
+- short =         attrs.fetch :short, false
 
 .section.blog-item
 	.container
@@ -19,5 +17,16 @@
 								= author
 
 				.content.article-body
-					== @body_html
+					- if short && @body_markdown.size > 200
+						== Markdown.to_html (@body_markdown[0..200] + "...")
+					- else
+						== @body_html
+
+				- if show_comments
+					- comments.not_nil!.to_h.to_a.map(&.[](1)).sort{|a, b| a.creation_date <=> b.creation_date}.each do |comment|
+						== comment.to_html env, article: self
+
+					form action=generate_url method="POST"
+						textarea name="body"
+						input.button type="submit"
 

@@ -68,10 +68,12 @@ class Blog
 			author = env.authd_user
 			unless author
 				# FIXME: Public comments?
-				# FIXME: Store the comment’s body somewhere? :|
+				env.session.string "comment-body", body
 				env.redirect "/login?from=#{HTML.escape env.request.path}"
 				next
 			end
+
+			env.session.string "comment-body", ""
 
 			comment = Comment.new author.uid, body
 

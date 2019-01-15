@@ -35,6 +35,6 @@
 						== comment.to_html env, article: self
 
 					form action=generate_url method="POST"
-						textarea name="body"
+						textarea name="body" == env.session.string? "comment-body"
 						input.button type="submit"
 

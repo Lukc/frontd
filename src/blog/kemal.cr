@@ -66,9 +66,11 @@ class Blog
 			body = get_safe_input env, "body"
 
 			author = env.authd_user
-			unless author # FIXME: Public comments?
-				env.response.status_code = 403
-				raise FrontD::AuthenticationError.new "You do not have permissions to post comments."
+			unless author
+				# FIXME: Public comments?
+				# FIXME: Store the comment’s body somewhere? :|
+				env.redirect "/login?from=#{HTML.escape env.request.path}"
+				next
 			end
 
 			comment = Comment.new author.uid, body

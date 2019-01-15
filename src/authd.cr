@@ -1,3 +1,5 @@
+require "digest"
+
 require "kemal"
 require "kemal-session"
 
@@ -188,6 +190,20 @@ class AuthD::Client
 		export_login_logout_routes
 		export_registration_routes
 		export_profile_routes
+	end
+end
+
+class AuthD::User
+	def avatar
+		avatar = previous_def
+
+		if avatar.nil?
+			digest = Digest::MD5.digest (other_contact || "#{login}@authd").downcase
+			hash = digest.to_slice.hexstring
+			avatar = "https://www.gravatar.com/avatar/#{hash}"
+		end
+
+		avatar
 	end
 end
 

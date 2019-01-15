@@ -71,7 +71,7 @@ class Blog
 				raise FrontD::AuthenticationError.new "You do not have permissions to post comments."
 			end
 
-			comment = Comment.new author.login, body
+			comment = Comment.new author.uid, body
 
 			current_article.comments.not_nil![comment.id] = comment
 
@@ -136,7 +136,7 @@ class Blog
 
 			begin
 				user = env.authd_user.not_nil!
-				author = user.login
+				author = user.uid
 			rescue
 				env.response.status_code = 403
 				raise FrontD::AuthenticationError.new "You must be logged in!"

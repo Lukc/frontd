@@ -33,7 +33,7 @@ shop = Shop.new
 shop.register_middleware
 shop.export_all_routes
 
-blog = Blog.new
+blog = Blog.new authd
 
 blog.export_all_routes dashboard
 

@@ -1,6 +1,13 @@
 
 - show_comments = attrs.fetch :comments, true
 - short =         attrs.fetch :short, false
+/ FIXME: Should have access to blog, which has access to authd. >_<
+/        @blog.authd instead of using attrs.fetch and passing it around.
+- authd =         attrs.fetch(:authd, nil)
+
+- unless authd.is_a? AuthD::Client
+	/ FIXME: See above FIXME. We shouldn’t have such exceptions.
+	- raise Exception.new "Template could not access `authd`."
 
 .section.blog-item
 	.container
@@ -12,9 +19,10 @@
 							h2.title.is-1
 								== @title_html
 
-						- @author.try do |author|
-							.subtitle.is-6.author
-								= author
+						- @authors.each do |id|
+							- authd.get_user?(id).try do |author|
+								.subtitle.is-6.author
+									= author.full_name || author.login
 
 				.content.article-body
 					- if short && @body_markdown.size > 200

@@ -32,7 +32,7 @@
 
 				- if show_comments
 					- comments.not_nil!.to_h.to_a.map(&.[](1)).sort{|a, b| a.creation_date <=> b.creation_date}.each do |comment|
-						== comment.to_html env, article: self
+						== comment.to_html env, article: self, authd: authd
 
 					form action=generate_url method="POST"
 						textarea name="body" == env.session.string? "comment-body"

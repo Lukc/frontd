@@ -1,6 +1,7 @@
 
 require "kemal"
 require "kemal-session"
+require "kemal-watcher"
 require "kilt/slang"
 require "markdown"
 
@@ -70,6 +71,16 @@ end
 		}
 	end
 end
+
+get "/watcher.js" do |env|
+	# Terrible. But putting it in public/ would mean the raw version is extracted.
+	File.read("./watcher.js").sub /@WEBSOCKETPATH/, Kemal::WEBSOCKETPATH
+end
+
+Kemal.watch [
+	"public/*.css",
+	"public/*.js"
+]
 
 Kemal.run
 

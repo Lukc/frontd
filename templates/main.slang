@@ -11,6 +11,8 @@ html
 		/ is made part of the toolchain.
 		link href="/style.css" rel="stylesheet"
 
+		script type="text/javascript" src="/watcher.js"
+
 	body
 		== Kilt.render "templates/navbar.slang"
 

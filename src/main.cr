@@ -74,6 +74,7 @@ end
 
 {% if flag?(:dev) %}
 	get "/watcher.js" do |env|
+		env.response.content_type = "application/javascript"
 		# Terrible. But putting it in public/ would mean the raw version is extracted.
 		File.read("./watcher.js").sub /@WEBSOCKETPATH/, Kemal::WEBSOCKETPATH
 	end

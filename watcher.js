@@ -1,7 +1,7 @@
 if ('WebSocket' in window) {
 	(() => {
 		var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
-		var address = protocol + window.location.host + window.location.pathname + "@WEBSOCKETPATH";
+		var address = protocol + window.location.host + "/@WEBSOCKETPATH";
 		var ws = new WebSocket(address);
 		ws.onopen = () => {
 			console.log("Connected to kemal-watcher");

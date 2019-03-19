@@ -10,8 +10,9 @@ html
 		/ CSS should probably be removed once SASS
 		/ is made part of the toolchain.
 		link href="/style.css" rel="stylesheet"
-
+		- {% if flag?(:dev) %}
 		script type="text/javascript" src="/watcher.js"
+		- {% end %}
 
 	body
 		== Kilt.render "templates/navbar.slang"

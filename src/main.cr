@@ -73,6 +73,13 @@ end
 end
 
 {% if flag?(:dev) %}
+	module Kemal
+		def self.watch(files)
+			websocket_server
+			watcher files
+		end
+	end
+
 	get "/watcher.js" do |env|
 		env.response.content_type = "application/javascript"
 		# Terrible. But putting it in public/ would mean the raw version is extracted.

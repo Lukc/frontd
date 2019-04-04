@@ -14,6 +14,10 @@ require "./builder.cr"
 require "./blog.cr"
 require "./helpers.cr"
 
+#AltiDeal's Code
+require "./orm.cr"
+
+
 require "authd"
 
 include FrontD

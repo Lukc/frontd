@@ -181,8 +181,39 @@ class AuthD::Client
 			}
 		end
 
-		post "/profile" do |env|
-			pp! env.params.body
+		post "/profile/password" do |env|
+			user = env.authd_user
+
+			unless user
+				next # FIXME: boom
+			end
+
+			password_old = env.params.body["password_old"]
+			password  = env.params.body["password"]
+			password2 = env.params.body["password2"]
+
+			if password != password2
+				next # FIXME: boom
+			end
+
+			mod_user user.uid, password: password
+
+			env.redirect "/profile"
+		end
+
+		# FIXME: User should be getting a new token after this.
+		post "/profile/avatar" do |env|
+			user = env.authd_user
+
+			unless user
+				next # FIXME: boom
+			end
+
+			avatar = env.params.body["avatar"]
+
+			mod_user user.uid, avatar: avatar
+
+			env.redirect "/profile"
 		end
 	end
 

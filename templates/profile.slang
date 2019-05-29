@@ -16,7 +16,7 @@
 					- avatar = user.avatar || "https://bulma.io/images/placeholders/128x128.png"
 					img src=avatar alt="user avatar"
 				.column
-					.form action="/profile/avatar" method="post"
+					form.form action="/profile/avatar" method="post"
 						.field
 							label.label Current avatar URL
 							.control
@@ -27,9 +27,9 @@
 							label.label New avatar URL
 						.field.has-addons
 							.control
-								input.input type="text" name="avatar_url" value=
+								input.input type="text" name="avatar" value=
 							.control
-								input.button.is-success type="submit" name="avatar" value="Update!"
+								button.button.is-success type="submit" Update!
 
 		.form action="/profile/basics" method="post"
 			.box
@@ -52,7 +52,7 @@
 						.control
 							input.button.is-success type="submit" value="Update!"
 
-		.form action="/profile/password" method="post"
+		form.form action="/profile/password" method="post"
 			.box
 				.field.is-horizontal
 					.field-label
@@ -71,5 +71,5 @@
 					.field-label
 					.field-body
 						.control
-							input.button.is-success type="submit" value="Update!"
+							button.button.is-success type="submit" Update!
 

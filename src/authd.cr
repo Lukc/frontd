@@ -176,6 +176,13 @@ class AuthD::Client
 	def export_profile_routes
 		# FIXME: Are those the paths we want?
 		get "/profile" do |env|
+			user = env.authd_user
+
+			unless user
+				env.redirect "/login?from=#{env.request.path}"
+				next
+			end
+
 			main_template(env) {
 				Kilt.render "templates/profile.slang"
 			}
@@ -185,7 +192,8 @@ class AuthD::Client
 			user = env.authd_user
 
 			unless user
-				next # FIXME: boom
+				env.redirect "/login?from=#{env.request.path}"
+				next
 			end
 
 			password_old = env.params.body["password_old"]
@@ -206,7 +214,8 @@ class AuthD::Client
 			user = env.authd_user
 
 			unless user
-				next # FIXME: boom
+				env.redirect "/login?from=#{env.request.path}"
+				next
 			end
 
 			avatar = env.params.body["avatar"]

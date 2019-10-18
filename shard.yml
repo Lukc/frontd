@@ -17,9 +17,11 @@ dependencies:
   html_builder: # temporary, will be removed
     github: crystal-lang/html_builder
   blogd:
-    github: FartingNicoNyanCats/blogd
+    #github: FartingNicoNyanCats/blogd
+    github: remydev/blogd
   authd:
-    github: FartingNicoNyanCats/authd
+    #github: FartingNicoNyanCats/authd
+    github: remydev/authd
   slang:
     github: jeromegn/slang
   kilt:

@@ -1,0 +1,724 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+CAUTION: Do not modify this file unless you know what you are doing.
+         Unexpected results may occur if the code is changed deliberately.
+-->
+<dbmodel pgmodeler-ver="0.9.2-alpha1" last-position="0,0" last-zoom="0.7" max-obj-count="21"
+	 default-schema="public" default-owner="postgres">
+<role name="test_pg_user"
+      superuser="true"
+      createdb="true"
+      createrole="true"
+      inherit="true"
+      login="true"
+      encrypted="true"
+      password="********">
+</role>
+
+<database name="altideal1" encoding="UTF8" lc-collate="fr_FR.UTF-8" lc-ctype="fr_FR.UTF-8" is-template="false" allow-conns="true">
+	<role name="postgres"/>
+	<tablespace name="pg_default"/>
+</database>
+
+<schema name="public" layer="0" rect-visible="true" fill-color="#e1e1e1" sql-disabled="true">
+</schema>
+
+<function name="update_modified_column"
+		window-func="false"
+		returns-setof="false"
+		behavior-type="CALLED ON NULL INPUT"
+		function-type="VOLATILE"
+		security-type="SECURITY INVOKER"
+		execution-cost="100"
+		row-amount="0">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<language name="plpgsql" sql-disabled="true"/>
+	<return-type>
+	<type name="trigger" length="1"/>
+	</return-type>
+	<definition><![CDATA[BEGIN
+   IF row(NEW.*) IS DISTINCT FROM row(OLD.*) THEN
+      NEW.date_row_modified = now(); 
+      RETURN NEW;
+   ELSE
+      RETURN OLD;
+   END IF;
+END;
+]]></definition>
+</function>
+
+<sequence name="brand_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="brands" layer="0" collapse-mode="2" max-obj-count="6">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="60" y="220"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="brand_name">
+		<type name="text" length="0"/>
+	</column>
+	<column name="date_row_created" not-null="true" default-value="CURRENT_TIMESTAMP">
+		<type name="timestamp with time zone" length="0" precision="6" with-timezone="true"/>
+	</column>
+	<column name="date_row_modified" not-null="true" default-value="CURRENT_TIMESTAMP">
+		<type name="timestamp with time zone" length="0" precision="6" with-timezone="true"/>
+	</column>
+	<column name="uuid">
+		<type name="uuid" length="0"/>
+	</column>
+	<constraint name="brands_pk" type="pk-constr" table="public.brands">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="brands_uuid_unique" type="uq-constr" table="public.brands">
+		<columns names="uuid" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="deal_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="deals" layer="0" collapse-mode="2" max-obj-count="24">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="520" y="300"/>
+	<column name="id" not-null="true">
+		<type name="bigserial" length="0"/>
+	</column>
+	<column name="uuid" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<column name="title" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="description">
+		<type name="text" length="0"/>
+	</column>
+	<column name="link_to_detail_deal">
+		<type name="text" length="0"/>
+	</column>
+	<column name="date_start">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="date_end">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="deal_rating" not-null="true" default-value="0">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="date_row_created" default-value="CURRENT_TIMESTAMP">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="date_row_modified" default-value="CURRENT_TIMESTAMP">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="is_free" default-value="false">
+		<type name="bool" length="0"/>
+	</column>
+	<column name="code_promo">
+		<type name="text" length="0"/>
+	</column>
+	<column name="current_price">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="original_price">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="link_database_user_id" not-null="true">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="dealer_id">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="deal_target_counsumer_country">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="category_id">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="product_id">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="brand_id">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="deal_pkey" type="pk-constr" table="public.deals">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="no_double_uuid_deals" type="uq-constr" table="public.deals">
+		<columns names="uuid" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="dealers_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="dealers" layer="0" collapse-mode="2" max-obj-count="9">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1160" y="40"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="name" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="website">
+		<type name="text" length="0"/>
+	</column>
+	<column name="date_row_created">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="date_row_modified">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="public modification locked">
+		<type name="bool" length="0"/>
+	</column>
+	<column name="dealer_partership_type_id">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="uuid">
+		<type name="uuid" length="0"/>
+	</column>
+	<constraint name="dealers_pkey" type="pk-constr" table="public.dealers">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="dealers_uuid_unique" type="uq-constr" table="public.dealers">
+		<columns names="uuid" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="users_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="2147483647" cache="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="link_database_users" layer="0" collapse-mode="2" max-obj-count="2">
+	<schema name="public"/>
+	<position x="1740" y="140"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="uuid" not-null="true">
+		<type name="uuid" length="0"/>
+	</column>
+	<constraint name="no_double_uuid_link_database_users" type="uq-constr" table="public.link_database_users">
+		<columns names="uuid" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="link_database_users_pk" type="pk-constr" table="public.link_database_users">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<trigger name="time_last_update_brand_trigger" firing-type="BEFORE" per-line="true" constraint="false"
+	 ins-event="false" del-event="false" upd-event="true" trunc-event="false"
+	 table="public.brands">
+		<function signature="public.update_modified_column()"/>
+</trigger>
+
+<trigger name="time_last_update_deal_trigger" firing-type="BEFORE" per-line="true" constraint="false"
+	 ins-event="false" del-event="false" upd-event="true" trunc-event="false"
+	 table="public.deals">
+		<function signature="public.update_modified_column()"/>
+</trigger>
+
+<trigger name="time_last_update_dealer_trigger" firing-type="BEFORE" per-line="true" constraint="false"
+	 ins-event="false" del-event="false" upd-event="true" trunc-event="false"
+	 table="public.dealers">
+		<function signature="public.update_modified_column()"/>
+</trigger>
+
+<table name="products" layer="0" collapse-mode="2" pagination="true" attribs-page="0" ext-attribs-page="0" max-obj-count="7">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="640" y="20"/>
+	<column name="id" not-null="true">
+		<type name="bigserial" length="0"/>
+	</column>
+	<column name="isin_code">
+		<type name="text" length="0"/>
+	</column>
+	<column name="product_rating">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="official_product_link">
+		<type name="text" length="0"/>
+	</column>
+	<column name="brand_id" not-null="true">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="dealer_id">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="products_pk" type="pk-constr" table="public.products">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="is_depreciated" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1760" y="340"/>
+	<column name="id" not-null="true">
+		<type name="bigserial" length="0"/>
+	</column>
+	<column name="date_row_created">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="date_row_modified">
+		<type name="timestamp with time zone" length="0" with-timezone="true"/>
+	</column>
+	<column name="link_database_user_id">
+		<type name="integer" length="0"/>
+	</column>
+	<constraint name="is_depreciated_pk" type="pk-constr" table="public.is_depreciated">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="OLD_geographic_department" layer="0" collapse-mode="2" max-obj-count="6">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="2080" y="560"/>
+	<column name="id" not-null="true">
+		<type name="smallserial" length="0"/>
+	</column>
+	<column name="name">
+		<type name="text" length="0"/>
+	</column>
+	<column name="departement_code">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="deal_geographic_reference_id">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="deal_id">
+		<type name="bigint" length="0"/>
+	</column>
+	<constraint name="geographic_department_pk" type="pk-constr" table="public.&quot;OLD_geographic_department&quot;">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="countries" layer="0" collapse-mode="2" max-obj-count="2">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1160" y="480"/>
+	<column name="id" not-null="true">
+		<type name="smallserial" length="0"/>
+	</column>
+	<column name="name">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="countries_pk" type="pk-constr" table="public.countries">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="unique_country" type="uq-constr" table="public.countries">
+		<columns names="name" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="OLD_city" layer="0" collapse-mode="2" max-obj-count="3">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="2080" y="800"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="geographique_departement_id">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="deal_id">
+		<type name="bigint" length="0"/>
+	</column>
+	<constraint name="city_pk" type="pk-constr" table="public.&quot;OLD_city&quot;">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="border_countries" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1720" y="540"/>
+	<column name="id" not-null="true">
+		<type name="smallserial" length="0"/>
+	</column>
+	<column name="origin_country">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="border_country">
+		<type name="smallint" length="0"/>
+	</column>
+	<constraint name="not_be_your_own_neighbour" type="ck-constr" table="public.border_countries">
+			<expression><![CDATA[(origin_country <> border_country)]]></expression>
+	</constraint>
+	<constraint name="border_countries_pk" type="pk-constr" table="public.border_countries">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<sequence name="categories_id_seq" cycle="false" start="1" increment="1" min-value="1" max-value="32767" cache="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+</sequence>
+
+<table name="deal_categories" layer="0" collapse-mode="2" max-obj-count="4">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<comment><![CDATA[https://sqlpro.developpez.com/cours/arborescence/
+https://stackoverflow.com/questions/2175882/how-to-represent-a-data-tree-in-sql]]></comment>
+	<position x="0" y="600"/>
+	<column name="id" not-null="true">
+		<type name="smallserial" length="0"/>
+	</column>
+	<column name="title" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="parent_id">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="reference_order">
+		<type name="smallint" length="0"/>
+	</column>
+	<constraint name="categories_pkey" type="pk-constr" table="public.deal_categories">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="geographic_positions" layer="0" collapse-mode="2" max-obj-count="6">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1040" y="680"/>
+	<column name="id" not-null="true">
+		<type name="serial" length="0"/>
+	</column>
+	<column name="geographic_name" not-null="true">
+		<type name="text" length="0"/>
+	</column>
+	<column name="code_reference">
+		<type name="smallint" length="0"/>
+		<comment><![CDATA[code postal ou code département]]></comment>
+	</column>
+	<column name="country_id" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="geographic_data_type_id" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<constraint name="deal_geographic_positions_pk" type="pk-constr" table="public.geographic_positions">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="geographic_positions_name_unique" type="uq-constr" table="public.geographic_positions">
+		<columns names="geographic_name" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="geographic_data_types" layer="0" collapse-mode="2" max-obj-count="2">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1540" y="900"/>
+	<column name="id" not-null="true">
+		<type name="smallserial" length="0"/>
+	</column>
+	<column name="geographic_type">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="geographic_data_types_pk" type="pk-constr" table="public.geographic_data_types">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+	<constraint name="geographic_data_types_unique_name" type="uq-constr" table="public.geographic_data_types">
+		<columns names="geographic_type" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<textbox name="Rules" layer="0" font-size="9">
+	<position x="0" y="60"/>
+	<comment><![CDATA[Table name : the last word only is in the plural (base on crystal class)
+In crystal : camelcase
+In postgresql : no capitalization (never), underscore between words
+FK = start with fk_<source_table>_<current_table>
+]]></comment>
+</textbox>
+
+<table name="dealer_partnership_types" layer="0" collapse-mode="2" max-obj-count="2">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1860" y="20"/>
+	<column name="id" not-null="true">
+		<type name="smallint" length="0"/>
+	</column>
+	<column name="parthnership_type">
+		<type name="text" length="0"/>
+	</column>
+	<constraint name="dealer_partnership_type_pk" type="pk-constr" table="public.dealer_partnership_types">
+		<columns names="id" ref-type="src-columns"/>
+	</constraint>
+</table>
+
+<table name="deal_geographic_positions" layer="0" collapse-mode="2" max-obj-count="2">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="620" y="920"/>
+	<column name="deal_id">
+		<type name="bigint" length="0"/>
+	</column>
+	<column name="geographic_position_id">
+		<type name="integer" length="0"/>
+	</column>
+</table>
+
+<view name="view_geographic_position_with_types" layer="0" collapse-mode="2" max-obj-count="1">
+	<schema name="public"/>
+	<role name="postgres"/>
+	<position x="1740" y="740"/>
+	<reference>
+		<expression><![CDATA[ SELECT geographic_positions.id,
+    geographic_positions.geographic_name,
+    geographic_data_types.geographic_type
+   FROM (geographic_positions
+     JOIN geographic_data_types ON ((geographic_data_types.id = geographic_positions.id)));]]></expression>
+	<column name="id">
+		<type name="integer" length="0"/>
+	</column>
+	<column name="geographic_name">
+		<type name="text" length="0"/>
+	</column>
+	<column name="geographic_type">
+		<type name="text" length="0"/>
+	</column>
+	</reference>
+</view>
+
+<constraint name="fk_brand_deal" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.brands" table="public.deals">
+	<columns names="brand_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_dealer_deal" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.dealers" table="public.deals">
+	<columns names="dealer_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_link_database_user_deal" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.link_database_users" table="public.deals">
+	<columns names="link_database_user_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_targetdealconsumercountry_countries" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.countries" table="public.deals">
+	<columns names="deal_target_counsumer_country" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_category" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.deal_categories" table="public.deals">
+	<columns names="category_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_deal_product" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.products" table="public.deals">
+	<columns names="product_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_dealer_partnership_type_dealer" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.dealer_partnership_types" table="public.dealers">
+	<columns names="dealer_partership_type_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_brand_product" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.brands" table="public.products">
+	<columns names="brand_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_dealer_product" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.dealers" table="public.products">
+	<columns names="dealer_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_link_database_user_id_is_depreciated" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.link_database_users" table="public.is_depreciated">
+	<columns names="link_database_user_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fy_city_geographicdepartement" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.&quot;OLD_geographic_department&quot;" table="public.&quot;OLD_city&quot;">
+	<columns names="id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_orignecountry" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.countries" table="public.border_countries">
+	<columns names="origin_country" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_border_country" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.countries" table="public.border_countries">
+	<columns names="border_country" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_deal_categories_deal_categories" type="fk-constr" comparison-type="MATCH SIMPLE"
+	 upd-action="CASCADE" del-action="CASCADE" ref-table="public.deal_categories" table="public.deal_categories">
+	<columns names="parent_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_geographic_data_types_deal_geographic_positions" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.geographic_data_types" table="public.geographic_positions">
+	<columns names="geographic_data_type_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_contries_deal_geographic_positions" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="NO ACTION" ref-table="public.countries" table="public.geographic_positions">
+	<columns names="country_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_geographic_positions_deal_geographic_positions" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="CASCADE" ref-table="public.geographic_positions" table="public.deal_geographic_positions">
+	<columns names="geographic_position_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<constraint name="fk_deals_deal_geographic_positions" type="fk-constr" comparison-type="MATCH FULL"
+	 upd-action="NO ACTION" del-action="CASCADE" ref-table="public.deals" table="public.deal_geographic_positions">
+	<columns names="deal_id" ref-type="src-columns"/>
+	<columns names="id" ref-type="dst-columns"/>
+</constraint>
+
+<relationship name="rel_deals_brands" type="relfk" layer="0"
+	 custom-color="#79b070"
+	 src-table="public.deals"
+	 dst-table="public.brands" reference-fk="fk_brand_deal"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_deals_dealers" type="relfk" layer="0"
+	 custom-color="#a26952"
+	 src-table="public.deals"
+	 dst-table="public.dealers" reference-fk="fk_dealer_deal"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_deals_link_database_users" type="relfk" layer="0"
+	 custom-color="#d2544c"
+	 src-table="public.deals"
+	 dst-table="public.link_database_users" reference-fk="fk_link_database_user_deal"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_products_brands" type="relfk" layer="0"
+	 src-table="public.products"
+	 dst-table="public.brands" reference-fk="fk_brand_product"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_products_dealers" type="relfk" layer="0"
+	 src-table="public.products"
+	 dst-table="public.dealers" reference-fk="fk_dealer_product"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_city_geographic_department" type="relfk" layer="0"
+	 src-table="public.&quot;OLD_city&quot;"
+	 dst-table="public.&quot;OLD_geographic_department&quot;" reference-fk="fy_city_geographicdepartement"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_deals_countrys" type="relfk" layer="0"
+	 src-table="public.deals"
+	 dst-table="public.countries" reference-fk="fk_targetdealconsumercountry_countries"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_bordering countries_countries" type="relfk" layer="0"
+	 src-table="public.border_countries"
+	 dst-table="public.countries" reference-fk="fk_orignecountry"
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="20.1145" y="-22.6766"/>
+	</label>
+</relationship>
+
+<relationship name="rel_categories_categories" type="relfk" layer="0"
+	 src-table="public.deal_categories"
+	 dst-table="public.deal_categories" reference-fk="fk_deal_categories_deal_categories"
+	 src-required="false" dst-required="false">
+	<line>
+		<position x="370.805" y="648.617"/>
+	<position x="370.805" y="589"/>
+	<position x="239.87" y="589"/>
+	</line>
+</relationship>
+
+<relationship name="rel_deals_deal_categories" type="relfk" layer="0"
+	 src-table="public.deals"
+	 dst-table="public.deal_categories" reference-fk="fk_category"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_deals_products" type="relfk" layer="0"
+	 src-table="public.deals"
+	 dst-table="public.products" reference-fk="fk_deal_product"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_is_depreciated_link_database_users" type="relfk" layer="0"
+	 src-table="public.is_depreciated"
+	 dst-table="public.link_database_users" reference-fk="fk_link_database_user_id_is_depreciated"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_deal_geographic_positions_geographic_data_types" type="relfk" layer="0"
+	 src-table="public.geographic_positions"
+	 dst-table="public.geographic_data_types" reference-fk="fk_geographic_data_types_deal_geographic_positions"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_bordering_countries_countries" type="relfk" layer="0"
+	 src-table="public.border_countries"
+	 dst-table="public.countries" reference-fk="fk_border_country"
+	 src-required="false" dst-required="false">
+	<label ref-type="src-label">
+		<position x="-22.15" y="23.6548"/>
+	</label>
+	<label ref-type="name-label">
+		<position x="116.114" y="-22.6766"/>
+	</label>
+</relationship>
+
+<relationship name="rel_deal_geographic_positions_countries" type="relfk" layer="0"
+	 src-table="public.geographic_positions"
+	 dst-table="public.countries" reference-fk="fk_contries_deal_geographic_positions"
+	 src-required="false" dst-required="false">
+	<label ref-type="name-label">
+		<position x="35.5285" y="-30.9766"/>
+	</label>
+</relationship>
+
+<relationship name="rel_dealers_dealer_partnership_type" type="relfk" layer="0"
+	 src-table="public.dealers"
+	 dst-table="public.dealer_partnership_types" reference-fk="fk_dealer_partnership_type_dealer"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_deal_geographic_positions_geographic_positions" type="relfk" layer="0"
+	 src-table="public.deal_geographic_positions"
+	 dst-table="public.geographic_positions" reference-fk="fk_geographic_positions_deal_geographic_positions"
+	 src-required="false" dst-required="false"/>
+
+<relationship name="rel_deal_geographic_positions_deals" type="relfk" layer="0"
+	 src-table="public.deal_geographic_positions"
+	 dst-table="public.deals" reference-fk="fk_deals_deal_geographic_positions"
+	 src-required="false" dst-required="false"/>
+
+</dbmodel>
